@@ -19,7 +19,87 @@
  * Mohab Safey El Din */
 
 //#include "libmsolve.c"
+#include "msolve/src/fglm/data_fglm.h"
+#include "msolve/src/usolve/data_usolve.h"
 #include "msolve/src/msolve/msolve.h"
+
+static void mpz_upoly_init(mpz_upoly_t poly, long alloc){
+  mpz_t *tmp = NULL;
+  if(alloc){
+    tmp = (mpz_t *)(malloc(alloc * sizeof(mpz_t)));
+    if(tmp==NULL){
+      fprintf(stderr, "Unable to allocate in mpz_upoly_init\n");
+      exit(1);
+    }
+    for(long i = 0; i < alloc; i++){
+      mpz_init(tmp[i]);
+      mpz_set_ui(tmp[i], 0);
+    }
+  }
+  poly->coeffs = tmp;
+  poly->alloc = alloc;
+  poly->length = -1;
+}
+
+static void mpz_upoly_init2(mpz_upoly_t poly, long alloc, long nbits){
+  mpz_t *tmp = NULL;
+  if(alloc){
+    tmp = (mpz_t *)(malloc(alloc * sizeof(mpz_t)));
+    //    tmp = (mpz_t *)(calloc(alloc, sizeof(mpz_t)));
+    if(tmp==NULL){
+      fprintf(stderr, "Unable to allocate in mpz_upoly_init\n");
+      exit(1);
+    }
+    for(long i = 0; i < alloc; i++){
+      mpz_init2(tmp[i], nbits);
+      mpz_set_ui(tmp[i], 0);
+    }
+  }
+  poly->coeffs = tmp;
+  poly->alloc = alloc;
+  poly->length = -1;
+}
+
+void mpz_upoly_clear(mpz_upoly_t pol); /*{
+
+  for(long i = 0; i < pol->alloc; i++){
+    mpz_clear(pol->coeffs[i]);
+  }
+  free(pol->coeffs);
+}*/
+
+static inline void mpz_param_init(mpz_param_t param){
+  param->nvars = 0;
+  param->nsols = 0;
+  mpz_upoly_init(param->elim, 0);
+  mpz_upoly_init(param->denom, 0);
+  param->coords=NULL;
+  param->cfs=NULL;
+}
+
+static inline void mpz_param_clear(mpz_param_t param){
+  mpz_upoly_clear(param->elim);
+  mpz_upoly_clear(param->denom);
+  if(param->coords != NULL){
+    for(long i = 0; i < param->nvars - 1; i++){
+      mpz_upoly_clear(param->coords[i]);
+      mpz_clear(param->cfs[i]);
+    }
+  }
+  free(param->coords);
+  free(param->cfs);
+  param->nvars  = 0;
+  param->nsols  = 0;
+}
+
+
+void real_point_clear(real_point_t pt);/*{
+  for(long i = 0; i < pt->nvars; i++){
+    mpz_clear(pt->coords[i]->val_up);
+    mpz_clear(pt->coords[i]->val_do);
+  }
+  free(pt->coords);
+}*/
 
 static inline data_gens_ff_t *allocate_data_gens(){
   data_gens_ff_t *gens = (data_gens_ff_t *)(malloc(sizeof(data_gens_ff_t)));
@@ -33,10 +113,10 @@ static inline data_gens_ff_t *allocate_data_gens(){
 }
 
 static inline void free_data_gens(data_gens_ff_t *gens){
-  for(long i = 0; i < gens->nvars; i++){
+  /*for(long i = 0; i < gens->nvars; i++){
     free(gens->vnames[i]);
   }
-  free(gens->vnames);
+  free(gens->vnames);*/
   if (gens->field_char == 0) {
       for(long i = 0; i < 2*gens->nterms; i++){
           mpz_clear(*(gens->mpz_cfs[i]));
@@ -96,10 +176,10 @@ int main(int argc, char **argv){
     FILE *fh  = fopen(files->in_file, "r");
     FILE *bfh  = fopen(files->bin_file, "r");
 
-    if (fh == NULL && bfh == NULL) {
+    /*if (fh == NULL && bfh == NULL) {
       fprintf(stderr, "Input file not found.\n");
       exit(1);
-    }
+    }*/
     if(fh!=NULL){
       fclose(fh);
     }
@@ -110,14 +190,14 @@ int main(int argc, char **argv){
     bfh =  NULL;
 
     /* clear out_file if given */
-    if(files->out_file != NULL){
+    /*if(files->out_file != NULL){
       FILE *ofile = fopen(files->out_file, "w");
       if(ofile == NULL){
         fprintf(stderr, "Cannot open output file\n");
         exit(1);
       }
       fclose(ofile);
-    }
+    }*/
     /**
        We get from files the requested data. 
     **/
@@ -145,7 +225,9 @@ int main(int argc, char **argv){
     gens->exps[2] = 0; gens->exps[3] = 2;
     gens->exps[4] = 0; gens->exps[5] = 0;
     gens->exps[6] = 1; gens->exps[7] = 0;
-    gens->exps[8] = 0; gens->exps[8] = 1;
+    gens->exps[8] = 0; gens->exps[9] = 1;
+
+    gens->vnames = (char *[2]){"x","y"};
 
     for(int i=0; i < 2*nr_terms; i++ )
     {
@@ -153,7 +235,7 @@ int main(int argc, char **argv){
 	mpz_init(*(gens->mpz_cfs[i]));
     }
 
-    signed long int coeffs[2*nr_terms] =
+    signed long int coeffs[2*5/*nr_terms*/] =
     {
 	    1,1, 1,1, -1,1, 1,1, -1,1
     };
