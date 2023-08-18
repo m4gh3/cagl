@@ -1,3 +1,3 @@
 [submodule "msolve"]
-	path = msolve
+	path = src/msolve
 	url = https://github.com/m4gh3/msolve.git
