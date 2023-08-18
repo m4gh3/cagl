@@ -35,9 +35,11 @@ void gens2msolve(data_gens_ff_t *gens, fmpq_mpoly_t *polys, size_t n, fmpq_mpoly
 
 	gens->lens = (int32_t *)malloc((unsigned long)(gens->ngens) * sizeof(int32_t));
 
+	ulong exps[gens->nvars];
+
 	for(size_t i=0; i < n; i++ )
 	{
-		gens->lens[i] = fmpq_t_mpoly_length(polys[i], ctx );
+		gens->lens[i] = fmpq_mpoly_length(polys[i], ctx );
 		gens->nterms +=  gens->lens[i];
 	}
 
@@ -56,9 +58,14 @@ void gens2msolve(data_gens_ff_t *gens, fmpq_mpoly_t *polys, size_t n, fmpq_mpoly
 		fmpq_init(c);
 		for(size_t j=0; j < gens->lens[i]; j++, p++ )
 		{
+
 			fmpq_mpoly_get_term_coeff_fmpq(c, polys[i], j, ctx );
-			fmpq_get_mpz_frac(gens->mpz_cfs[2*p], gens->mpz_cfs[2*p+1], c );
-			fmpq_mpoly_get_term_exp_ui(exps + gens->nvars*p, polys[i], j, ctx );
+			fmpq_get_mpz_frac(gens->mpz_cfs[2*p][0], gens->mpz_cfs[2*p+1][0], c );
+			fmpq_mpoly_get_term_exp_ui(exps/*gens->exps + gens->nvars*p*/, polys[i], j, ctx );
+
+			for(size_t k=0; k < gens->nvars; k++ )
+				(gens->exps + gens->nvars*p)[k] = (int32_t) exps[k];
+
 		}
 	}
 
