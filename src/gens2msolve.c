@@ -16,35 +16,17 @@
  * Authors:
  * Lorenzo Magherini (m4gh3) */
 
-#include <stdio.h>
-#include <gmp.h>
-#include <flint/flint.h>
-#include <flint/fmpq_mpoly.h>
+#include "include/gens2msolve.h"
 
-#include "msolve/src/fglm/data_fglm.h"
-#include "msolve/src/usolve/data_usolve.h"
-#include "msolve/src/msolve/msolve.h"
-
-
-static inline data_gens_ff_t *allocate_data_gens()
-{
-
-  data_gens_ff_t *gens = (data_gens_ff_t *)(malloc(sizeof(data_gens_ff_t)));
-  gens->lens  = NULL;
-  gens->exps  = NULL;
-  gens->cfs   = NULL;
-  gens->mpz_cfs = NULL;
-
-  gens->elim = 0;
-  return gens;
-
-}
-
-void gens2msolve(data_gens_ff_t *gens, fmpq_mpoly_t *polys, size_t n, fmpq_mpoly_ctx_t ctx )
+data_gens_ff_t *gens2msolve(fmpq_mpoly_t *polys, size_t n, fmpq_mpoly_ctx_t ctx )
 {
 
 	//slong nr_terms = 0;
-	
+
+	data_gens_ff_t *gens = (data_gens_ff_t *)(malloc(sizeof(data_gens_ff_t)));
+	gens->cfs   = NULL;
+  	gens->elim = 0;
+
 	gens->nvars = fmpq_mpoly_ctx_nvars(ctx);
 	gens->ngens = n;
 	gens->nterms = 0;
@@ -86,5 +68,7 @@ void gens2msolve(data_gens_ff_t *gens, fmpq_mpoly_t *polys, size_t n, fmpq_mpoly
 
 		}
 	}
+
+	return gens;
 
 }
