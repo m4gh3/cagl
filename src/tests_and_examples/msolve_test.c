@@ -19,9 +19,9 @@
  * Mohab Safey El Din */
 
 //#include "libmsolve.c"
-#include "msolve/src/fglm/data_fglm.h"
-#include "msolve/src/usolve/data_usolve.h"
-#include "msolve/src/msolve/msolve.h"
+#include "../msolve/src/fglm/data_fglm.h"
+#include "../msolve/src/usolve/data_usolve.h"
+#include "../msolve/src/msolve/msolve.h"
 
 static void mpz_upoly_init(mpz_upoly_t poly, long alloc){
   mpz_t *tmp = NULL;
@@ -214,6 +214,7 @@ int main(int argc, char **argv){
     gens->nvars = nr_vars;
     gens->ngens = nr_gens;
     gens->nterms = nr_terms;
+    gens->change_var_order = -1;
     gens->field_char = 0;
     gens->lens = (int32_t *) malloc((unsigned long)nr_gens * sizeof(int32_t));
     gens->exps = (int32_t *) malloc(nr_terms * nr_vars * sizeof(int32_t));

@@ -27,3 +27,4 @@
 
 
 data_gens_ff_t *gens2msolve(fmpq_mpoly_t *polys, size_t n, fmpq_mpoly_ctx_t ctx );
+void free_data_gens(data_gens_ff_t *gens);

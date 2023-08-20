@@ -16,6 +16,8 @@
  * Authors:
  * Lorenzo Magherini (m4gh3) */
 
+/* Note: this code takes also some inspiration from msolve's source code */
+
 #include "include/gens2msolve.h"
 
 data_gens_ff_t *gens2msolve(fmpq_mpoly_t *polys, size_t n, fmpq_mpoly_ctx_t ctx )
@@ -31,7 +33,8 @@ data_gens_ff_t *gens2msolve(fmpq_mpoly_t *polys, size_t n, fmpq_mpoly_ctx_t ctx 
 	gens->ngens = n;
 	gens->nterms = 0;
 	gens->field_char = 0;
-
+	gens->vnames = NULL;
+	gens->change_var_order = -1;
 
 	gens->lens = (int32_t *)malloc((unsigned long)(gens->ngens) * sizeof(int32_t));
 
@@ -70,5 +73,30 @@ data_gens_ff_t *gens2msolve(fmpq_mpoly_t *polys, size_t n, fmpq_mpoly_ctx_t ctx 
 	}
 
 	return gens;
+
+}
+
+void free_data_gens(data_gens_ff_t *gens)
+{
+
+  /*for(long i = 0; i < gens->nvars; i++){
+    free(gens->vnames[i]);
+  }
+  free(gens->vnames);*/
+
+	if (gens->field_char == 0) {
+		for(long i = 0; i < 2*gens->nterms; i++)
+		{
+			mpz_clear(*(gens->mpz_cfs[i]));
+			free(gens->mpz_cfs[i]);
+		}
+	}
+
+	free(gens->mpz_cfs);
+	free(gens->lens);
+	free(gens->cfs);
+	free(gens->exps);
+	free(gens->random_linear_form);
+	free(gens);
 
 }
