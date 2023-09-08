@@ -18,7 +18,7 @@ int fmpq_mpoly_matrix_mul(fmpq_mpoly_matrix_t A, fmpq_mpoly_matrix_t B, fmpq_mpo
 {
 
 	//Einsum notation
-	//B[ij],C[jk] . A[ik]
+	//B[ij],C[jk] -> A[ik]
 
 	if( (B->cols != C->rows)||(A->rows != B->rows)||(A->cols != C->cols) )
 		return -1;
@@ -40,6 +40,21 @@ int fmpq_mpoly_matrix_mul(fmpq_mpoly_matrix_t A, fmpq_mpoly_matrix_t B, fmpq_mpo
 	}
 
 	return 0;
+
+}
+
+void fmpq_mpoly_matrix_squared_frobenius(fmpq_mpoly_t a, const fmpq_mpoly_matrix_t B, const fmpq_mpoly_ctx_t ctx )
+{
+
+	fmpq_mpoly_zero(a, ctx );
+	fmpq_mpoly_t temp;
+	fmpq_mpoly_init(temp, ctx );
+
+	for(int i=0; i < B->cols*B->rows; i++ )
+	{
+		fmpq_mpoly_mul(temp, B->cfs[i], B->cfs[i], ctx );
+		fmpq_mpoly_add(a, a, temp, ctx );
+	}
 
 }
 

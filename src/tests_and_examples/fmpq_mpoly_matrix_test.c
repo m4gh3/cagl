@@ -28,6 +28,14 @@ int main()
 
 	fmpq_mpoly_matrix_fprint_pretty(stdout, A, ring_gen_names, ctx );
 
+	fmpq_mpoly_t frob;
+	fmpq_mpoly_init(frob, ctx );
+
+	printf("----------\n");
+
+	fmpq_mpoly_matrix_squared_frobenius(frob, A, ctx );
+	fmpq_mpoly_print_pretty(frob, ring_gen_names, ctx );
+
 	return 0;
 
 }
