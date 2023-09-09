@@ -1,6 +1,6 @@
 #include "include/fmpq_mpoly_matrix.h"
 
-void fmpq_mpoly_matrix_init(fmpq_mpoly_matrix_t A, size_t cols, size_t rows, const fmpq_mpoly_ctx_t ctx )
+void fmpq_mpoly_matrix_init(fmpq_mpoly_matrix_t A, size_t rows, size_t cols, const fmpq_mpoly_ctx_t ctx )
 {
 
 	A->cols = cols;
@@ -42,6 +42,46 @@ int fmpq_mpoly_matrix_mul(fmpq_mpoly_matrix_t A, fmpq_mpoly_matrix_t B, fmpq_mpo
 	return 0;
 
 }
+
+int fmpq_mpoly_matrix_hadamard(fmpq_mpoly_matrix_t A, fmpq_mpoly_matrix_t B, fmpq_mpoly_matrix_t C, const fmpq_mpoly_ctx_t ctx )
+{
+	
+	if( (A->cols != B->cols)||(B->cols != C->cols)||(A->rows != B->rows)||(B->cols != C->cols) )
+		return -1;
+
+	for(int i=0; i < A->cols*A->rows; i++ )
+		fmpq_mpoly_mul(A->cfs[i], B->cfs[i], C->cfs[i], ctx );
+
+	return 0;
+
+}
+
+int fmpq_mpoly_matrix_add(fmpq_mpoly_matrix_t A, fmpq_mpoly_matrix_t B, fmpq_mpoly_matrix_t C, const fmpq_mpoly_ctx_t ctx )
+{
+	
+	if( (A->cols != B->cols)||(B->cols != C->cols)||(A->rows != B->rows)||(B->cols != C->cols) )
+		return -1;
+
+	for(int i=0; i < A->cols*A->rows; i++ )
+		fmpq_mpoly_add(A->cfs[i], B->cfs[i], C->cfs[i], ctx );
+
+	return 0;
+
+}
+
+int fmpq_mpoly_matrix_sub(fmpq_mpoly_matrix_t A, fmpq_mpoly_matrix_t B, fmpq_mpoly_matrix_t C, const fmpq_mpoly_ctx_t ctx )
+{
+	
+	if( (A->cols != B->cols)||(B->cols != C->cols)||(A->rows != B->rows)||(B->cols != C->cols) )
+		return -1;
+
+	for(int i=0; i < A->cols*A->rows; i++ )
+		fmpq_mpoly_sub(A->cfs[i], B->cfs[i], C->cfs[i], ctx );
+
+	return 0;
+
+}
+
 
 void fmpq_mpoly_matrix_squared_frobenius(fmpq_mpoly_t a, const fmpq_mpoly_matrix_t B, const fmpq_mpoly_ctx_t ctx )
 {
