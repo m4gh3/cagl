@@ -164,9 +164,9 @@ int main(int argc, char **argv)
 
 	fmpq_mpoly_ctx_t ctx;
 	
-	fmpq_mpoly_ctx_init(ctx, 5, ORD_DEGREVLEX );
+	fmpq_mpoly_ctx_init(ctx, 6, ORD_DEGREVLEX );
 	
-	const char *ring_gen_names[] = {"w0", "w1", "w2", "w3", "l" };
+	const char *ring_gen_names[] = {"w0", "w1", "w2", "w3", "l0", "l1" };
 	
 	/*fmpq_mpoly_t P[2];
 	
@@ -177,19 +177,19 @@ int main(int argc, char **argv)
 	fmpq_mpoly_set_str_pretty(P[1], "w0-w1", ring_gen_names, ctx );*/
 		
 	fmpq_mpoly_matrix_t A, B, x_train, y_train, y_hat0, y_hat1, y_hat, E_vec;
-	fmpq_mpoly_t E, constraint, L_grad[5];
+	fmpq_mpoly_t E, constraint, L_grad[6];
 
 	fmpq_mpoly_matrix_init(A, 1, 2, ctx );
 	fmpq_mpoly_matrix_init(B, 1, 2, ctx );
-	fmpq_mpoly_matrix_init(x_train, 2, 4, ctx );
-	fmpq_mpoly_matrix_init(y_train, 1, 4, ctx );
-	fmpq_mpoly_matrix_init(y_hat0, 1, 4, ctx );
-	fmpq_mpoly_matrix_init(y_hat1, 1, 4, ctx );
-	fmpq_mpoly_matrix_init(y_hat, 1, 4, ctx );
-	fmpq_mpoly_matrix_init(E_vec, 1, 4, ctx );
+	fmpq_mpoly_matrix_init(x_train, 2, 5, ctx );
+	fmpq_mpoly_matrix_init(y_train, 1, 5, ctx );
+	fmpq_mpoly_matrix_init(y_hat0, 1, 5, ctx );
+	fmpq_mpoly_matrix_init(y_hat1, 1, 5, ctx );
+	fmpq_mpoly_matrix_init(y_hat, 1, 5, ctx );
+	fmpq_mpoly_matrix_init(E_vec, 1, 5, ctx );
 	fmpq_mpoly_init(E, ctx );
 	fmpq_mpoly_init(constraint, ctx );
-	for(int i=0; i < 5; i++ )
+	for(int i=0; i < 6; i++ )
 		fmpq_mpoly_init(L_grad[i], ctx );
 
 
@@ -199,7 +199,7 @@ int main(int argc, char **argv)
 	fmpq_mpoly_matrix_coeff_set_str_pretty(B, "w2", ring_gen_names, 0, 0, ctx );
 	fmpq_mpoly_matrix_coeff_set_str_pretty(B, "w3", ring_gen_names, 0, 1, ctx );
 
-	fmpq_mpoly_set_str_pretty(constraint, "l*w0^2+l*w1^2-l", ring_gen_names, ctx );
+	fmpq_mpoly_set_str_pretty(constraint, "l0*w0^2+l0*w1^2-l0+l1*w2^2+l1*w3^2-l1", ring_gen_names, ctx );
 
 	fmpq_mpoly_matrix_coeff_set_str_pretty(x_train, "1", ring_gen_names, 0, 0, ctx );
 	fmpq_mpoly_matrix_coeff_set_str_pretty(x_train, "1", ring_gen_names, 1, 0, ctx );
@@ -217,7 +217,10 @@ int main(int argc, char **argv)
 	fmpq_mpoly_matrix_coeff_set_str_pretty(x_train, "-1", ring_gen_names, 0, 3, ctx );
 	fmpq_mpoly_matrix_coeff_set_str_pretty(x_train, "-1", ring_gen_names, 1, 3, ctx );
 	fmpq_mpoly_matrix_coeff_set_str_pretty(y_train, "1", ring_gen_names, 0, 3, ctx );
-	
+
+	/*fmpq_mpoly_matrix_coeff_set_str_pretty(x_train, "1/2", ring_gen_names, 0, 4, ctx );
+	fmpq_mpoly_matrix_coeff_set_str_pretty(x_train, "1/2", ring_gen_names, 1, 4, ctx );
+	fmpq_mpoly_matrix_coeff_set_str_pretty(y_train, "1/4", ring_gen_names, 0, 4, ctx );*/
 
 
 	fmpq_mpoly_matrix_fprint_pretty(stdout, A, ring_gen_names, ctx );
@@ -247,14 +250,14 @@ int main(int argc, char **argv)
 	fmpq_mpoly_print_pretty(E, ring_gen_names, ctx );
 
 	printf("\n-----------\nLagrangian gradient:\n");
-	for(int i=0; i < 5; i++ )
+	for(int i=0; i < 6; i++ )
 	{
 		fmpq_mpoly_derivative(L_grad[i], E, i, ctx );
 		fmpq_mpoly_print_pretty(L_grad[i], ring_gen_names, ctx );
 		putchar('\n');
 	}
 
-	data_gens_ff_t *gens = gens2msolve(L_grad, 5, ctx );
+	data_gens_ff_t *gens = gens2msolve(L_grad, 6, ctx );
 
 	/* data structures for parametrization */
 	param_t *param  = NULL;
