@@ -12,6 +12,16 @@ void fmpq_mpoly_matrix_init(fmpq_mpoly_matrix_t A, size_t rows, size_t cols, con
 
 }
 
+void fmpq_mpoly_matrix_clear(fmpq_mpoly_matrix_t A, const fmpq_mpoly_ctx_t ctx )
+{
+
+	for(int i=0; i < A->cols*A->rows; i++ )
+		fmpq_mpoly_clear(A->cfs[i], ctx );
+
+	free(A->cfs);
+	
+}
+
 //Warning: matrix mul cannot be done in place !!!
 
 int fmpq_mpoly_matrix_mul(fmpq_mpoly_matrix_t A, fmpq_mpoly_matrix_t B, fmpq_mpoly_matrix_t C, const fmpq_mpoly_ctx_t ctx )

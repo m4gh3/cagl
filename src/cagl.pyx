@@ -22,6 +22,7 @@ from libc.stdlib cimport malloc, free
 
 cdef extern from "Python.h":
     const char* PyUnicode_AsUTF8(object unicode)
+    size_t PyLong_AsSize_t(object pylong)
 
 cdef extern from "flint/flint.h":
     ctypedef signed long slong
@@ -40,9 +41,15 @@ cdef extern from "flint/fmpq_mpoly.h":
     signed long fmpq_mpoly_ctx_nvars(fmpq_mpoly_ctx_t ctx)
     void fmpq_mpoly_ctx_clear(fmpq_mpoly_ctx_t ctx)
 
-
-    ctypedef struct fmpq_mpoly_t:
+    ctypedef struct fmpq_mpoly_struct:
         pass
+
+    ctypedef fmpq_mpoly_struct fmpq_mpoly_t[1]
+
+    #mem manag
+
+    void fmpq_mpoly_init(fmpq_mpoly_t A, const fmpq_mpoly_ctx_t ctx )
+    void fmpq_mpoly_clear(fmpq_mpoly_t A, const fmpq_mpoly_ctx_t ctx )
 
     #I/O
 
@@ -52,6 +59,7 @@ cdef extern from "flint/fmpq_mpoly.h":
     #Basic manipulation
 
     void fmpq_mpoly_gen(fmpq_mpoly_t A, slong var, const fmpq_mpoly_ctx_t ctx )
+    void fmpq_mpoly_set(fmpq_mpoly_t A, const fmpq_mpoly_t B, const fmpq_mpoly_ctx_t ctx )
 
     #Add/Sub
 
@@ -88,6 +96,10 @@ cdef class fmpq_mpoly:
 
     def __cinit__(self, ctx : fmpq_mpoly_ctx ):
         self.ctx = ctx
+        fmpq_mpoly_init(self.mpoly, ctx.ctx )
+
+    def __dealloc__(self):
+        fmpq_mpoly_clear(self.mpoly, self.ctx.ctx )
 
     def set_str_pretty(self, str, x ):
         py_byte_string = str.encode('UTF-8')
@@ -159,6 +171,144 @@ cdef class fmpq_mpoly:
     def gen(self, var : long ):
         fmpq_mpoly_gen(self.mpoly, var, self.ctx.ctx )
 
+cdef extern from "./include/fmpq_mpoly_matrix.h":
 
-#next we'll work on fmpq_mpoly_tensor ? (Madness)
+    ctypedef struct fmpq_mpoly_matrix_struct:
+        size_t cols;
+        size_t rows;
+        fmpq_mpoly_t *cfs
+
+    ctypedef fmpq_mpoly_matrix_struct fmpq_mpoly_matrix_t[1]
+
+    void fmpq_mpoly_matrix_init(fmpq_mpoly_matrix_t A, size_t rows, size_t cols, const fmpq_mpoly_ctx_t ctx )
+    void fmpq_mpoly_matrix_clear(fmpq_mpoly_matrix_t A, const fmpq_mpoly_ctx_t ctx )
+    int fmpq_mpoly_matrix_mul(fmpq_mpoly_matrix_t A, fmpq_mpoly_matrix_t B, fmpq_mpoly_matrix_t C, const fmpq_mpoly_ctx_t ctx )
+    int fmpq_mpoly_matrix_hadamard(fmpq_mpoly_matrix_t A, fmpq_mpoly_matrix_t B, fmpq_mpoly_matrix_t C, const fmpq_mpoly_ctx_t ctx )
+    int fmpq_mpoly_matrix_add(fmpq_mpoly_matrix_t A, fmpq_mpoly_matrix_t B, fmpq_mpoly_matrix_t C, const fmpq_mpoly_ctx_t ctx )
+    int fmpq_mpoly_matrix_sub(fmpq_mpoly_matrix_t A, fmpq_mpoly_matrix_t B, fmpq_mpoly_matrix_t C, const fmpq_mpoly_ctx_t ctx )
+    void fmpq_mpoly_matrix_squared_frobenius(fmpq_mpoly_t a, const fmpq_mpoly_matrix_t B, const fmpq_mpoly_ctx_t ctx )
+    fmpq_mpoly_struct *fmpq_mpoly_coeff_at(const fmpq_mpoly_matrix_t A, size_t i, size_t j )
+
+cdef class fmpq_mpoly_matrix:
+
+    cdef fmpq_mpoly_matrix_t mpoly_mat
+    cdef fmpq_mpoly_ctx ctx
+
+    def __cinit__(self, rows, cols, ctx : fmpq_mpoly_ctx ):
+        self.ctx = ctx
+        cdef size_t rows_
+        cdef size_t cols_
+        rows_ = PyLong_AsSize_t(rows)
+        cols_ = PyLong_AsSize_t(cols)
+        fmpq_mpoly_matrix_init(self.mpoly_mat, rows_, cols_, ctx.ctx )
+
+    def __dealloc__(self):
+        fmpq_mpoly_matrix_clear(self.mpoly_mat, self.ctx.ctx )
+
+#    def set_str_pretty(self, str, x ):
+#        py_byte_string = str.encode('UTF-8')
+#        cdef char *c_string = py_byte_string
+#        cdef unsigned long x_len = len(x)
+#        cdef const char **x_ = <char **> malloc(x_len*sizeof(char *))
+#        cdef i
+#        for i in range(x_len):
+#            x_[i] = PyUnicode_AsUTF8(x[i])
+#        fmpq_mpoly_set_str_pretty(self.mpoly, c_string, x_, self.ctx.ctx )
+#        free(x_)
+#
+#    def get_str_pretty(self, x ):
+#        cdef const char *c_string
+#        cdef unsigned long x_len = len(x)
+#        cdef const char **x_ = <char **> malloc(x_len*sizeof(char *))
+#        cdef i
+#        for i in range(x_len):
+#            x_[i] = PyUnicode_AsUTF8(x[i])
+#        c_string = fmpq_mpoly_get_str_pretty(self.mpoly, x_, self.ctx.ctx )
+#        string = c_string.decode('UTF-8')
+#        free(c_string)
+#        free(x_)
+#        return string
+
+    def __add__(self, other : fmpq_mpoly_matrix ):
+        if isinstance(other, fmpq_mpoly_matrix ):
+            if( self.ctx != other.ctx ):
+                raise ValueError("cannot __add__ : first and second mpoly_matrix have different context")
+            elif((self.mpoly_mat.rows != other.mpoly_mat.rows) or (self.mpoly_mat.cols != other.mpoly_mat.cols)):
+                raise ValueError("cannot __add__: first and second mpoly_matrix have different shapes")
+            else:
+                ret = fmpq_mpoly_matrix(self.mpoly_mat.rows, self.mpoly_mat.cols, self.ctx )
+                fmpq_mpoly_matrix_add(ret.mpoly_mat, self.mpoly_mat, other.mpoly_mat, self.ctx.ctx )
+                return ret
+        else:
+            raise TypeError("Unsupported operand type")
+
+    def __sub__(self, other : fmpq_mpoly_matrix ):
+        if isinstance(other, fmpq_mpoly_matrix ):
+            if( self.ctx != other.ctx ):
+                raise ValueError("cannot __sub__ : first and second mpoly_matrix have different context")
+            elif((self.mpoly_mat.rows != other.mpoly_mat.rows) or (self.mpoly_mat.cols != other.mpoly_mat.cols)):
+                raise ValueError("cannot __sub__: first and second mpoly_matrix have different shapes")
+            else:
+                ret = fmpq_mpoly_matrix(self.mpoly_mat.rows, self.mpoly_mat.cols, self.ctx )
+                fmpq_mpoly_matrix_sub(ret.mpoly_mat, self.mpoly_mat, other.mpoly_mat, self.ctx.ctx )
+                return ret
+        else:
+            raise TypeError("Unsupported operand type")
+
+    def __mul__(self, other : fmpq_mpoly_matrix ):
+        if isinstance(other, fmpq_mpoly_matrix ):
+            if( self.ctx != other.ctx ):
+                raise ValueError("cannot __mul__ : first and second mpoly_matrix have different context")
+            elif((self.mpoly_mat.rows != other.mpoly_mat.rows) or (self.mpoly_mat.cols != other.mpoly_mat.cols)):
+                raise ValueError("cannot __mul__: first and second mpoly_matrix have different shapes")
+            else:
+                ret = fmpq_mpoly_matrix(self.mpoly_mat.rows, self.mpoly_mat.cols, self.ctx )
+                fmpq_mpoly_matrix_hadamard(ret.mpoly_mat, self.mpoly_mat, other.mpoly_mat, self.ctx.ctx )
+                return ret
+        else:
+            raise TypeError("Unsupported operand type")
+
+    def __matmul__(self, other : fmpq_mpoly_matrix ):
+        if isinstance(other, fmpq_mpoly_matrix ):
+            if( self.ctx != other.ctx ):
+                raise ValueError("cannot __matmul__ : first and second mpoly_matrix have different context")
+            elif((self.mpoly_mat.cols != other.mpoly_mat.rows)):
+                raise ValueError("cannot __matmul__: first and second mpoly_matrix have incompatible shapes")
+            else:
+                ret = fmpq_mpoly_matrix(self.mpoly_mat.rows, other.mpoly_mat.cols, self.ctx )
+                fmpq_mpoly_matrix_mul(ret.mpoly_mat, self.mpoly_mat, other.mpoly_mat, self.ctx.ctx )
+                return ret
+        else:
+            raise TypeError("Unsupported operand type")
+
+    def __getitem__(self, key ):
+
+        cdef size_t i, j
+        cdef fmpq_mpoly_struct *coeff
+
+        i = PyLong_AsSize_t(key[0])
+        j = PyLong_AsSize_t(key[1])
+        if( (i >= self.mpoly_mat.rows) or (j >= self.mpoly_mat.cols) ):
+            raise ValueError("cannot __getitem__: index out of range")
+        else:
+            coeff = fmpq_mpoly_coeff_at(self.mpoly_mat, i, j )
+            ret = fmpq_mpoly(self.ctx)
+            fmpq_mpoly_set(ret.mpoly, coeff, self.ctx.ctx )
+            return ret
+
+    def __setitem__(self, key, value : fmpq_mpoly ):
+
+        cdef size_t i, j
+        cdef fmpq_mpoly_struct *coeff
+
+        i = PyLong_AsSize_t(key[0])
+        j = PyLong_AsSize_t(key[1])
+
+        if( self.ctx != value.ctx ):
+            raise ValueError("cannot __setitem__: the mpoly_matrix and the mpoly do not have the same context")
+        elif( (i >= self.mpoly_mat.rows) or (j >= self.mpoly_mat.cols) ):
+            raise ValueError("cannot __setitem__: index out of range")
+        else:
+            coeff = fmpq_mpoly_coeff_at(self.mpoly_mat, i, j )
+            fmpq_mpoly_set(coeff, value.mpoly, self.ctx.ctx )
 

@@ -19,6 +19,8 @@ typedef struct fmpq_mpoly_matrix_struct
 
 void fmpq_mpoly_matrix_init(fmpq_mpoly_matrix_t A, size_t cols, size_t rows, const fmpq_mpoly_ctx_t ctx );
 
+void fmpq_mpoly_matrix_clear(fmpq_mpoly_matrix_t A, const fmpq_mpoly_ctx_t ctx );
+
 //multiplication of matrices: cannot be done in place !!!
 
 int fmpq_mpoly_matrix_mul(fmpq_mpoly_matrix_t A, fmpq_mpoly_matrix_t B, fmpq_mpoly_matrix_t C, const fmpq_mpoly_ctx_t ctx );
