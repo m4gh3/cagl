@@ -110,6 +110,7 @@ cdef class fmpq_mpoly:
         c_string = fmpq_mpoly_get_str_pretty(self.mpoly, x_, self.ctx.ctx )
         string = c_string.decode('UTF-8')
         free(c_string)
+        free(x_)
         return string
 
     def __add__(self, other : fmpq_mpoly ):
