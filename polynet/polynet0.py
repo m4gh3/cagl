@@ -49,8 +49,8 @@ class PGate(nn.Module):
     def forward(self, x ):
 
         x  = self.pxus(self.conv1(self.conv0(x)))
-        x0 = self.bn0(self.conv2(x))/2
-        x1 = self.bn1(self.conv3(x))/2
+        x0 = self.bn0(self.conv2(x))/2+0.5
+        x1 = self.bn1(self.conv3(x))/2+0.5
         x2 = self.bn2(self.conv4(x))/2
 
 
