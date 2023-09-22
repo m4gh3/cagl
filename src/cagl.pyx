@@ -19,6 +19,7 @@
 # cagl.pyx
 
 from libc.stdlib cimport malloc, free
+import collections.abc
 
 cdef extern from "Python.h":
     const char* PyUnicode_AsUTF8(object unicode)
@@ -94,35 +95,64 @@ cdef class fmpq_mpoly:
     cdef fmpq_mpoly_t mpoly
     cdef fmpq_mpoly_ctx ctx
 
-    def __cinit__(self, ctx : fmpq_mpoly_ctx ):
+    def __cinit__(self, ctx : fmpq_mpoly_ctx, string=None, x=None ):
         self.ctx = ctx
         fmpq_mpoly_init(self.mpoly, ctx.ctx )
+        if isinstance(string, str ):
+            self.set_str_pretty(string, x )
 
     def __dealloc__(self):
         fmpq_mpoly_clear(self.mpoly, self.ctx.ctx )
 
-    def set_str_pretty(self, str, x ):
-        py_byte_string = str.encode('UTF-8')
-        cdef char *c_string = py_byte_string
-        cdef unsigned long x_len = len(x)
-        cdef const char **x_ = <char **> malloc(x_len*sizeof(char *))
-        cdef i
-        for i in range(x_len):
-            x_[i] = PyUnicode_AsUTF8(x[i])
-        fmpq_mpoly_set_str_pretty(self.mpoly, c_string, x_, self.ctx.ctx )
-        free(x_)
-
-    def get_str_pretty(self, x ):
+    def set_str_pretty(self, string : str, x=None ):
         cdef const char *c_string
-        cdef unsigned long x_len = len(x)
-        cdef const char **x_ = <char **> malloc(x_len*sizeof(char *))
+        cdef unsigned long x_len
+        cdef const char **x_
         cdef i
-        for i in range(x_len):
-            x_[i] = PyUnicode_AsUTF8(x[i])
-        c_string = fmpq_mpoly_get_str_pretty(self.mpoly, x_, self.ctx.ctx )
-        string = c_string.decode('UTF-8')
-        free(c_string)
-        free(x_)
+        c_string = PyUnicode_AsUTF8(string)
+        if isinstance(x, collections.abc.Iterable ):
+            x_len = len(x)
+            x_ = <char **> malloc(x_len*sizeof(char *))
+            for i in range(x_len):
+                if isinstance(x[i], str ):
+                    x_[i] = PyUnicode_AsUTF8(x[i])
+                else:
+                    free(x_)
+                    raise ValueError(f"cannot set_str_pretty : element of x at index={i} is not a string" )
+            fmpq_mpoly_set_str_pretty(self.mpoly, c_string, x_, self.ctx.ctx )
+            free(x_)
+        elif x == None:
+            fmpq_mpoly_set_str_pretty(self.mpoly, c_string, NULL, self.ctx.ctx )
+        else:
+            raise ValueError("cannot set_str_pretty : x needs to be either an iterable (with integer indexes) containing strings or None")
+
+        return string
+
+    def get_str_pretty(self, x=None ):
+        cdef const char *c_string
+        cdef unsigned long x_len
+        cdef const char **x_
+        cdef i
+        if isinstance(x, collections.abc.Iterable ):
+            x_len = len(x)
+            x_ = <char **> malloc(x_len*sizeof(char *))
+            for i in range(x_len):
+                if isinstance(x[i], str ):
+                    x_[i] = PyUnicode_AsUTF8(x[i])
+                else:
+                    free(x_)
+                    raise ValueError(f"cannot get_str_pretty : element of x at index={i} is not a string" )
+            c_string = fmpq_mpoly_get_str_pretty(self.mpoly, x_, self.ctx.ctx )
+            string = c_string.decode('UTF-8')
+            free(c_string)
+            free(x_)
+        elif x == None:
+            c_string = fmpq_mpoly_get_str_pretty(self.mpoly, NULL, self.ctx.ctx )
+            string = c_string.decode('UTF-8')
+            free(c_string)
+        else:
+            raise ValueError("cannot get_str_pretty : x needs to be either an iterable (with integer indexes) containing strings or None")
+
         return string
 
     def __add__(self, other : fmpq_mpoly ):
@@ -194,13 +224,13 @@ cdef class fmpq_mpoly_matrix:
     cdef fmpq_mpoly_matrix_t mpoly_mat
     cdef fmpq_mpoly_ctx ctx
 
-    def __cinit__(self, rows, cols, ctx : fmpq_mpoly_ctx ):
+    def __cinit__(self, rows, cols, ctx ):#: fmpq_mpoly_ctx ):
         self.ctx = ctx
         cdef size_t rows_
         cdef size_t cols_
         rows_ = PyLong_AsSize_t(rows)
         cols_ = PyLong_AsSize_t(cols)
-        fmpq_mpoly_matrix_init(self.mpoly_mat, rows_, cols_, ctx.ctx )
+        fmpq_mpoly_matrix_init(self.mpoly_mat, rows_, cols_, (<fmpq_mpoly_ctx>ctx).ctx )
 
     def __dealloc__(self):
         fmpq_mpoly_matrix_clear(self.mpoly_mat, self.ctx.ctx )
@@ -312,3 +342,5 @@ cdef class fmpq_mpoly_matrix:
             coeff = fmpq_mpoly_coeff_at(self.mpoly_mat, i, j )
             fmpq_mpoly_set(coeff, value.mpoly, self.ctx.ctx )
 
+    #def set_str_pretty_array(self, str_arr, x ):
+    #    cdef 
