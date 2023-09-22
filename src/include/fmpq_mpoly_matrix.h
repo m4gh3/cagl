@@ -49,4 +49,6 @@ fmpq_mpoly_struct *fmpq_mpoly_coeff_at(const fmpq_mpoly_matrix_t A, size_t i, si
 //void fmpq_mpoly_coeff_set(const fmpq_mpoly_matrix_t A, fmpq_mpoly_t b, size_t i, size_t j );
 int fmpq_mpoly_matrix_coeff_set_str_pretty(const fmpq_mpoly_matrix_t A, const char *str, const char **x, size_t i, size_t j, const fmpq_mpoly_ctx_t ctx );
 
+int fmpq_mpoly_matrix_gens_fill(const fmpq_mpoly_matrix_t A, size_t g0, const fmpq_mpoly_ctx_t ctx );
+
 #endif

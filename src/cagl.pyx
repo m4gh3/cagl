@@ -218,6 +218,7 @@ cdef extern from "./include/fmpq_mpoly_matrix.h":
     int fmpq_mpoly_matrix_sub(fmpq_mpoly_matrix_t A, fmpq_mpoly_matrix_t B, fmpq_mpoly_matrix_t C, const fmpq_mpoly_ctx_t ctx )
     void fmpq_mpoly_matrix_squared_frobenius(fmpq_mpoly_t a, const fmpq_mpoly_matrix_t B, const fmpq_mpoly_ctx_t ctx )
     fmpq_mpoly_struct *fmpq_mpoly_coeff_at(const fmpq_mpoly_matrix_t A, size_t i, size_t j )
+    int fmpq_mpoly_matrix_gens_fill(const fmpq_mpoly_matrix_t A, size_t g0, const fmpq_mpoly_ctx_t ctx )
 
 cdef class fmpq_mpoly_matrix:
 
@@ -234,30 +235,6 @@ cdef class fmpq_mpoly_matrix:
 
     def __dealloc__(self):
         fmpq_mpoly_matrix_clear(self.mpoly_mat, self.ctx.ctx )
-
-#    def set_str_pretty(self, str, x ):
-#        py_byte_string = str.encode('UTF-8')
-#        cdef char *c_string = py_byte_string
-#        cdef unsigned long x_len = len(x)
-#        cdef const char **x_ = <char **> malloc(x_len*sizeof(char *))
-#        cdef i
-#        for i in range(x_len):
-#            x_[i] = PyUnicode_AsUTF8(x[i])
-#        fmpq_mpoly_set_str_pretty(self.mpoly, c_string, x_, self.ctx.ctx )
-#        free(x_)
-#
-#    def get_str_pretty(self, x ):
-#        cdef const char *c_string
-#        cdef unsigned long x_len = len(x)
-#        cdef const char **x_ = <char **> malloc(x_len*sizeof(char *))
-#        cdef i
-#        for i in range(x_len):
-#            x_[i] = PyUnicode_AsUTF8(x[i])
-#        c_string = fmpq_mpoly_get_str_pretty(self.mpoly, x_, self.ctx.ctx )
-#        string = c_string.decode('UTF-8')
-#        free(c_string)
-#        free(x_)
-#        return string
 
     def __add__(self, other : fmpq_mpoly_matrix ):
         if isinstance(other, fmpq_mpoly_matrix ):
@@ -342,5 +319,51 @@ cdef class fmpq_mpoly_matrix:
             coeff = fmpq_mpoly_coeff_at(self.mpoly_mat, i, j )
             fmpq_mpoly_set(coeff, value.mpoly, self.ctx.ctx )
 
-    #def set_str_pretty_array(self, str_arr, x ):
-    #    cdef 
+    #int fmpq_mpoly_matrix_gens_fill(const fmpq_mpoly_matrix_t A, size_t g0, const fmpq_mpoly_ctx_t ctx )
+
+    def gens_fill(self, g0 ):
+        if fmpq_mpoly_matrix_gens_fill(self.mpoly_mat, g0, self.ctx.ctx ) < 0:
+            raise ValueError(f"cannot gens_fill : there are not enough generators to fill the matrix starting from {g0}")
+
+    def get_str_pretty(self, x=None ):
+        cdef const char *c_string
+        cdef unsigned long x_len
+        cdef const char **x_
+        cdef long k
+        cdef long i
+        cdef long j
+        string = ""
+        if isinstance(x, collections.abc.Iterable ):
+            x_len = len(x)
+            x_ = <char **> malloc(x_len*sizeof(char *))
+            for k in range(x_len):
+                if isinstance(x[k], str ):
+                    x_[k] = PyUnicode_AsUTF8(x[k])
+                else:
+                    free(x_)
+                    raise ValueError(f"cannot get_str_pretty : element of x at index={i} is not a string" )
+            string += "[\n"
+            for i in range(self.mpoly_mat.rows):
+                string += "\t[ "
+                for j in range(self.mpoly_mat.cols):
+                    c_string = fmpq_mpoly_get_str_pretty(self.mpoly_mat.cfs[i*self.mpoly_mat.cols+j], x_, self.ctx.ctx )
+                    string += (c_string.decode('UTF-8') + ", ")
+                    free(c_string)
+                string += "], \n"
+            string += "]"
+            free(x_)
+        elif x == None:
+            string += "[\n"
+            for i in range(self.mpoly_mat.rows):
+                string += "\t[ "
+                for j in range(self.mpoly_mat.cols):
+                    c_string = fmpq_mpoly_get_str_pretty(self.mpoly_mat.cfs[i*self.mpoly_mat.cols+j], NULL, self.ctx.ctx )
+                    string += (c_string.decode('UTF-8') + ", ")
+                    free(c_string)
+                string += "], \n"
+            string += "]"
+        else:
+            raise ValueError("cannot get_str_pretty : x needs to be either an iterable (with integer indexes) containing strings or None")
+
+        return string
+

@@ -131,3 +131,12 @@ fmpq_mpoly_struct *fmpq_mpoly_coeff_at(const fmpq_mpoly_matrix_t A, size_t i, si
 
 int fmpq_mpoly_matrix_coeff_set_str_pretty(const fmpq_mpoly_matrix_t A, const char *str, const char **x, size_t i, size_t j, const fmpq_mpoly_ctx_t ctx )
 { return fmpq_mpoly_set_str_pretty(A->cfs[A->cols*i+j], str, x, ctx ); }
+
+int fmpq_mpoly_matrix_gens_fill(const fmpq_mpoly_matrix_t A, size_t g0, const fmpq_mpoly_ctx_t ctx )
+{
+	if( g0+(A->rows)*(A->cols) > fmpq_mpoly_ctx_nvars(ctx) )
+		return -1;
+	for(int i=0; i < A->rows*A->cols; i++ )
+		fmpq_mpoly_gen(A->cfs[i], g0+i, ctx );
+	return 0;
+}
