@@ -320,6 +320,12 @@ cdef class fmpq_mpoly_matrix:
         else:
             raise TypeError("Unsupported operand type")
 
+    #void fmpq_mpoly_matrix_squared_frobenius(fmpq_mpoly_t a, const fmpq_mpoly_matrix_t B, const fmpq_mpoly_ctx_t ctx )
+    def sqfrob(self):
+        ret = fmpq_mpoly(self.ctx)
+        fmpq_mpoly_matrix_squared_frobenius(ret.mpoly, self.mpoly_mat, self.ctx.ctx )
+        return ret
+
     def __getitem__(self, key ):
 
         cdef size_t i, j
