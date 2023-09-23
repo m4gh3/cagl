@@ -27,6 +27,7 @@ cdef extern from "Python.h":
 
 cdef extern from "flint/flint.h":
     ctypedef signed long slong
+    ctypedef unsigned long ulong
 
 cdef extern from "flint/fmpq_mpoly.h":
 
@@ -61,6 +62,9 @@ cdef extern from "flint/fmpq_mpoly.h":
 
     void fmpq_mpoly_gen(fmpq_mpoly_t A, slong var, const fmpq_mpoly_ctx_t ctx )
     void fmpq_mpoly_set(fmpq_mpoly_t A, const fmpq_mpoly_t B, const fmpq_mpoly_ctx_t ctx )
+
+    #Constants
+    void fmpq_mpoly_set_fmpq(fmpq_mpoly_t A, const fmpq_t c, const fmpq_mpoly_ctx_t ctx )
 
     #Add/Sub
 
@@ -220,6 +224,34 @@ cdef extern from "./include/fmpq_mpoly_matrix.h":
     fmpq_mpoly_struct *fmpq_mpoly_coeff_at(const fmpq_mpoly_matrix_t A, size_t i, size_t j )
     int fmpq_mpoly_matrix_gens_fill(const fmpq_mpoly_matrix_t A, size_t g0, const fmpq_mpoly_ctx_t ctx )
 
+
+cdef extern from "flint/fmpz.h":
+
+    ctypedef struct fmpz_t:
+        pass
+
+    void fmpz_init(fmpz_t f)
+    void fmpz_clear(fmpz_t f)
+    void fmpz_set_d_2exp(fmpz_t f, double d, slong exp )
+    void fmpz_ui_pow_ui(fmpz_t f, ulong g, ulong x )
+
+
+cdef extern from "flint/fmpq.h":
+
+    ctypedef struct fmpq_t:
+        pass
+
+    void fmpq_init(fmpq_t x)
+    void fmpq_clear(fmpq_t x)
+    void fmpq_set_fmpz_frac(fmpq_t res, const fmpz_t p, const fmpz_t q )
+
+
+
+cimport cython
+import numpy
+cimport numpy
+cimport libc.math
+
 cdef class fmpq_mpoly_matrix:
 
     cdef fmpq_mpoly_matrix_t mpoly_mat
@@ -341,7 +373,7 @@ cdef class fmpq_mpoly_matrix:
                     x_[k] = PyUnicode_AsUTF8(x[k])
                 else:
                     free(x_)
-                    raise ValueError(f"cannot get_str_pretty : element of x at index={i} is not a string" )
+                    raise ValueError(f"cannot get_str_pretty : element of x at index={k} is not a string" )
             string += "[\n"
             for i in range(self.mpoly_mat.rows):
                 string += "\t[ "
@@ -367,3 +399,32 @@ cdef class fmpq_mpoly_matrix:
 
         return string
 
+    @cython.boundscheck(False)
+    @cython.wraparound(False)
+    def set_from_np(self, arr : float [:,:], ee : int ):
+        cdef long i, j, ek
+        cdef float v, b
+        cdef fmpq_t res
+        cdef fmpz_t p, q
+        fmpq_init(res)
+        fmpz_init(p)
+        fmpz_init(q)
+        if ( arr.shape[0] != self.mpoly_mat.rows ) or ( arr.shape[1] != self.mpoly_mat.cols ):
+            raise ValueError("cannot set_from_np : fmpq_mpoly_matrix and array shapes do not match")
+        if ( ee <= 0 ):
+            raise ValueError("cannot set_from_np : ee <= 0 and needs to be > 0")
+        
+        for i in range(self.mpoly_mat.rows):
+            for j in range(self.mpoly_mat.cols):
+                v = arr[i,j]
+                if v != 0 :
+                    ek = ee-libc.math.floor(libc.math.log2(libc.math.fabs(v)))
+                    ek = 0 if ek < 0 else ek
+                    fmpz_set_d_2exp(p, v, ek )
+                    #fmpz_ui_pow_ui(q, 2, ek ) #it doesn't link yet probably need to wait until flint3
+                    fmpz_set_d_2exp(q, 1, ek )
+                    fmpq_set_fmpz_frac(res, p, q )
+                    fmpq_mpoly_set_fmpq(self.mpoly_mat.cfs[i*self.mpoly_mat.cols+j], res, self.ctx.ctx )
+        fmpq_clear(res)
+        fmpz_clear(p)
+        fmpz_clear(q)
