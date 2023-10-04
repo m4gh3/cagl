@@ -35,6 +35,8 @@ data_gens_ff_t *gens2msolve(fmpq_mpoly_t *polys, size_t n, fmpq_mpoly_ctx_t ctx 
 	gens->field_char = 0;
 	gens->vnames = NULL;
 	gens->change_var_order = -1;
+	gens->linear_form_base_coef = 0;
+	gens->rand_linear = 0;
 
 	gens->lens = (int32_t *)malloc((unsigned long)(gens->ngens) * sizeof(int32_t));
 
