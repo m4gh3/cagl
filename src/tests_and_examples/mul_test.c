@@ -25,19 +25,6 @@
 #include "../msolve/src/msolve/msolve.h"
 #include "../include/fmpq_mpoly_matrix.h"
 
-double *get_sols_buffer(msolve_re_solutions_t sols )
-{
-	long nb_real_roots = sols->nb_real_roots;
-	long nvars = sols->real_pts[0]->nvars;
-	double *buffer = malloc(sols->nb_real_roots*nvars*sizeof(double));
-	double *buf_ptr = buffer;
-	//convert all the coords to float
-	for(size_t i=0; i < nb_real_roots; i++ )
-		for(size_t j=0; j < nvars; j++ )
-			*(buf_ptr++) = mpz_get_d(sols->real_pts[i]->coords[j]->val_do)/pow(2, sols->real_pts[i]->coords[j]->k_do ); //it's a bit wrong to just use val_do and k_do
-	return buffer;
-}
-
 int main(int argc, char **argv)
 {
 
