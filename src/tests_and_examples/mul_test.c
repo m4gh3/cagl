@@ -1,43 +1,3 @@
-/*
-int main()
-{
-	fmpq_mpoly_ctx_t ctx;
-
-	fmpq_mpoly_ctx_init(ctx, 2, ORD_DEGREVLEX );
-
-	const char *ring_gen_names[] = {"x", "y" };
-
-	fmpq_mpoly_matrix_t A, B;
-
-	fmpq_mpoly_matrix_init(A, 2, 2, ctx );
-	fmpq_mpoly_matrix_init(B, 2, 2, ctx );
-
-	fmpq_mpoly_matrix_coeff_set_str_pretty(B, "x",   ring_gen_names, 0, 0, ctx );
-	fmpq_mpoly_matrix_coeff_set_str_pretty(B, "y",   ring_gen_names, 0, 1, ctx );
-	fmpq_mpoly_matrix_coeff_set_str_pretty(B, "x^2", ring_gen_names, 1, 0, ctx );
-	fmpq_mpoly_matrix_coeff_set_str_pretty(B, "y^2", ring_gen_names, 1, 1, ctx );
-
-	printf("A=\n");
-
-	fmpq_mpoly_matrix_fprint_pretty(stdout, B, ring_gen_names, ctx );
-
-	fmpq_mpoly_matrix_mul(A, B, B, ctx );
-
-	printf("----------\nA^2=\n");
-
-	fmpq_mpoly_matrix_fprint_pretty(stdout, A, ring_gen_names, ctx );
-
-	fmpq_mpoly_t frob;
-	fmpq_mpoly_init(frob, ctx );
-
-	printf("----------\n");
-
-	fmpq_mpoly_matrix_squared_frobenius(frob, A, ctx );
-	fmpq_mpoly_print_pretty(frob, ring_gen_names, ctx );
-
-	return 0;
-
-}*/
 /* This file is part of cagl.
  *
  * cagl is free software: you can redistribute it and/or modify
@@ -64,6 +24,19 @@ int main()
 //#include "../msolve/src/usolve/data_usolve.h"
 #include "../msolve/src/msolve/msolve.h"
 #include "../include/fmpq_mpoly_matrix.h"
+
+double *get_sols_buffer(msolve_re_solutions_t sols )
+{
+	long nb_real_roots = sols->nb_real_roots;
+	long nvars = sols->real_pts[0]->nvars;
+	double *buffer = malloc(sols->nb_real_roots*nvars*sizeof(double));
+	double *buf_ptr = buffer;
+	//convert all the coords to float
+	for(size_t i=0; i < nb_real_roots; i++ )
+		for(size_t j=0; j < nvars; j++ )
+			*(buf_ptr++) = mpz_get_d(sols->real_pts[i]->coords[j]->val_do)/pow(2, sols->real_pts[i]->coords[j]->k_do ); //it's a bit wrong to just use val_do and k_do
+	return buffer;
+}
 
 int main(int argc, char **argv)
 {
@@ -167,5 +140,19 @@ int main(int argc, char **argv)
 
 	//data_gens_ff_t *gens = gens2msolve(L_grad, 6, ctx );
 	msolve_from_fmpq_mpolys(sols, L_grad, 6, ring_gen_names, ctx );
+
+	//now printing solutions
+	printf("number of solutions found: %d\n", sols->nb_real_roots );
+
+	printf("printing from buffer:\n");;
 	
+	double *sols_buf = get_sols_buffer(sols);
+
+	for(size_t i=0; i < 6*16; i+=6 )
+	{
+		for(size_t j=0; j < 6; j++ )
+			printf("%f ,", sols_buf[i+j] );
+		putchar('\n');
+	}
+
 }
