@@ -61,7 +61,7 @@ int main()
 
 #include <stdio.h>
 #include "../msolve/src/fglm/data_fglm.h"
-#include "../msolve/src/usolve/data_usolve.h"
+//#include "../msolve/src/usolve/data_usolve.h"
 #include "../msolve/src/msolve/msolve.h"
 #include "../include/fmpq_mpoly_matrix.h"
 
@@ -163,7 +163,9 @@ int main(int argc, char **argv)
 		putchar('\n');
 	}
 
+	msolve_re_solutions_t sols;
+
 	//data_gens_ff_t *gens = gens2msolve(L_grad, 6, ctx );
-	msolve_from_fmpq_mpolys(L_grad, 6, ring_gen_names, ctx );
+	msolve_from_fmpq_mpolys(sols, L_grad, 6, ring_gen_names, ctx );
 	
 }
