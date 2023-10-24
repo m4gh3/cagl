@@ -434,3 +434,22 @@ cdef class fmpq_mpoly_matrix:
         fmpq_clear(res)
         fmpz_clear(p)
         fmpz_clear(q)
+
+cdef extern from "msolve/src/fglm/data_fglm.h":
+    pass
+cdef extern from "msolve/src/msolve/msolve-data.h":
+    pass
+cdef extern from "msolve/src/msolve/msolve.h":
+    ctypedef msolve_re_solutions_t
+    void msolve_from_fmpq_mpolys(
+	msolve_re_solutions_t sols,
+        fmpq_mpoly_t *polys,
+        size_t n,
+        char **vnames,
+        fmpq_mpoly_ctx_t ctx
+	)
+    cdef void msolve_solutions_clear(msolve_re_solutions_t sols)
+    cdef double *get_sols_buffer(msolve_re_solutions_t sols)
+
+def solve_from_gens(arr):
+    pass
