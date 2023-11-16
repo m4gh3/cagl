@@ -142,4 +142,6 @@ int main(int argc, char **argv)
 		putchar('\n');
 	}
 
+	msolve_solutions_clear(sols);
+
 }
