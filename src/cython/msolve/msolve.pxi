@@ -18,17 +18,21 @@
 
 # cagl.pyx
 
-include "c_utils.pxi"
+include "../fmpq/fmpq_mpoly.pxi"
 
-#flint basic includes
+cdef extern from "../../msolve/src/fglm/data_fglm.h":
+    pass
+cdef extern from "../../msolve/src/msolve/msolve-data.h":
+    pass
+cdef extern from "../../msolve/src/msolve/msolve.h":
+    ctypedef msolve_re_solutions_t
+    void msolve_from_fmpq_mpolys(
+	msolve_re_solutions_t sols,
+        fmpq_mpoly_t *polys,
+        size_t n,
+        char **vnames,
+        fmpq_mpoly_ctx_t ctx
+	)
+    cdef void msolve_solutions_clear(msolve_re_solutions_t sols)
+    cdef double *get_sols_buffer(msolve_re_solutions_t sols)
 
-include "flint.pxi"
-include "fmpq/fmpz.pxi"
-include "fmpq/fmpq.pxi"
-
-#then fmpq_poly and fmpq_mpoly_matrix
-include "fmpq/fmpq_mpoly.pyx"
-include "fmpq/fmpq_mpoly_matrix.pyx"
-
-#include msolve funcionality
-include "msolve/msolve.pyx"

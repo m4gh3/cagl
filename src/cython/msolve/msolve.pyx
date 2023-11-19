@@ -18,17 +18,7 @@
 
 # cagl.pyx
 
-include "c_utils.pxi"
+include "msolve.pxi"
 
-#flint basic includes
-
-include "flint.pxi"
-include "fmpq/fmpz.pxi"
-include "fmpq/fmpq.pxi"
-
-#then fmpq_poly and fmpq_mpoly_matrix
-include "fmpq/fmpq_mpoly.pyx"
-include "fmpq/fmpq_mpoly_matrix.pyx"
-
-#include msolve funcionality
-include "msolve/msolve.pyx"
+def solve_from_gens(arr):
+    pass
