@@ -24,12 +24,12 @@ import math
 
 class PGate(nn.Module):
 
-    def __init__(self, in_c, out_c ):
+    def __init__(self, in_c, out_c, padding=0 ):
 
         super().__init__()
 
         self.conv0  = nn.Conv2d(in_c , out_c, 1, bias=False )
-        self.conv1  = nn.Conv2d(out_c, out_c, 3, padding='same', bias=False, groups=out_c )
+        self.conv1  = nn.Conv2d(out_c, out_c, 5, stride=2, padding=padding, bias=False, groups=out_c )
         self.pxus   = nn.PixelUnshuffle(2)
         self.conv2  = nn.Conv2d(4*out_c, out_c, 1, bias=False )
         self.conv3  = nn.Conv2d(4*out_c, out_c, 1, bias=False )
@@ -65,8 +65,8 @@ class NetModule(nn.Module):
         super().__init__()
 
         #self.pgates = nn.ModuleList([PGate(3, 4 ), PGate(4, 4 ), PGate(4, 8 ), PGate(8, 8 )])
-        self.pgates = nn.ModuleList([PGate(3, 8 ), PGate(8, 16 ), PGate(16, 16 ), PGate(16, 32 )])
-        self.dense  = nn.Linear(32*4, 10 )
+        self.pgates = nn.ModuleList([PGate(3, 4, 8 ), PGate(4, 2, 0)])#, PGate(8, 16 ), PGate(16, 16 ), PGate(16, 32 )])
+        self.dense  = nn.Linear(8, 10 )
 
     def forward(self, x ):
  
