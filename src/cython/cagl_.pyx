@@ -16,15 +16,15 @@
  * Authors:
  * Lorenzo Magherini (m4gh3) '''
 
-from setuptools import setup, Extension
-from Cython.Build import cythonize
-import numpy as np
+# cagl.pyx
 
-#extensions = [ Extension("cagl", ["src/cython/cagl.pyx","src/fmpq_mpoly_matrix.c"], libraries=["flint", "gmp" ]) ]
-extensions = [ Extension("cagl", ["src/cython/cagl_.pyx", "src/fmpq_mpoly_matrix.c" ], libraries=["flint", "gmp" ]) ]
+include "c_utils.pxi"
 
-setup(
-    ext_modules=cythonize(extensions, compiler_directives={'language_level' : "3"}, build_dir="build" ),
-    include_dirs=[np.get_include()]+[ "src/msolve/src/"+dir for dir in ["msolve", "usolve", "neogb", "fglm" ] ]
-)
+#flint basic includes
 
+include "flint.pxi"
+include "fmpq/fmpz.pxi"
+include "fmpq/fmpq.pxi"
+
+#then fmpq_poly
+include "fmpq/fmpq_mpoly.pyx"

@@ -16,15 +16,10 @@
  * Authors:
  * Lorenzo Magherini (m4gh3) '''
 
-from setuptools import setup, Extension
-from Cython.Build import cythonize
-import numpy as np
+from libc.stdlib cimport malloc, free
+import collections.abc
 
-#extensions = [ Extension("cagl", ["src/cython/cagl.pyx","src/fmpq_mpoly_matrix.c"], libraries=["flint", "gmp" ]) ]
-extensions = [ Extension("cagl", ["src/cython/cagl_.pyx", "src/fmpq_mpoly_matrix.c" ], libraries=["flint", "gmp" ]) ]
-
-setup(
-    ext_modules=cythonize(extensions, compiler_directives={'language_level' : "3"}, build_dir="build" ),
-    include_dirs=[np.get_include()]+[ "src/msolve/src/"+dir for dir in ["msolve", "usolve", "neogb", "fglm" ] ]
-)
+cdef extern from "Python.h":
+    const char* PyUnicode_AsUTF8(object unicode)
+    size_t PyLong_AsSize_t(object pylong)
 

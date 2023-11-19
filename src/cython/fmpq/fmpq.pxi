@@ -16,15 +16,12 @@
  * Authors:
  * Lorenzo Magherini (m4gh3) '''
 
-from setuptools import setup, Extension
-from Cython.Build import cythonize
-import numpy as np
+cdef extern from "flint/fmpq.h":
 
-#extensions = [ Extension("cagl", ["src/cython/cagl.pyx","src/fmpq_mpoly_matrix.c"], libraries=["flint", "gmp" ]) ]
-extensions = [ Extension("cagl", ["src/cython/cagl_.pyx", "src/fmpq_mpoly_matrix.c" ], libraries=["flint", "gmp" ]) ]
+    ctypedef struct fmpq_t:
+        pass
 
-setup(
-    ext_modules=cythonize(extensions, compiler_directives={'language_level' : "3"}, build_dir="build" ),
-    include_dirs=[np.get_include()]+[ "src/msolve/src/"+dir for dir in ["msolve", "usolve", "neogb", "fglm" ] ]
-)
+    void fmpq_init(fmpq_t x)
+    void fmpq_clear(fmpq_t x)
+    void fmpq_set_fmpz_frac(fmpq_t res, const fmpz_t p, const fmpz_t q )
 

@@ -18,67 +18,7 @@
 
 # cagl.pyx
 
-from libc.stdlib cimport malloc, free
-import collections.abc
-
-cdef extern from "Python.h":
-    const char* PyUnicode_AsUTF8(object unicode)
-    size_t PyLong_AsSize_t(object pylong)
-
-cdef extern from "flint/flint.h":
-    ctypedef signed long slong
-    ctypedef unsigned long ulong
-
-cdef extern from "flint/fmpq_mpoly.h":
-
-    ctypedef enum ordering_t:
-        ORD_LEX
-        ORD_DEGLEX
-        ORD_DEGREVLEX
-
-    ctypedef struct fmpq_mpoly_ctx_t:
-        pass
-
-    void fmpq_mpoly_ctx_init(fmpq_mpoly_ctx_t ctx, signed long nvars, const ordering_t ord )
-    signed long fmpq_mpoly_ctx_nvars(fmpq_mpoly_ctx_t ctx)
-    void fmpq_mpoly_ctx_clear(fmpq_mpoly_ctx_t ctx)
-
-    ctypedef struct fmpq_mpoly_struct:
-        pass
-
-    ctypedef fmpq_mpoly_struct fmpq_mpoly_t[1]
-
-    #mem manag
-
-    void fmpq_mpoly_init(fmpq_mpoly_t A, const fmpq_mpoly_ctx_t ctx )
-    void fmpq_mpoly_clear(fmpq_mpoly_t A, const fmpq_mpoly_ctx_t ctx )
-
-    #I/O
-
-    char *fmpq_mpoly_get_str_pretty(const fmpq_mpoly_t A, const char **x, const fmpq_mpoly_ctx_t ctx ) 
-    int fmpq_mpoly_set_str_pretty(fmpq_mpoly_t A, const char *str, const char **x, const fmpq_mpoly_ctx_t ctx )
-
-    #Basic manipulation
-
-    void fmpq_mpoly_gen(fmpq_mpoly_t A, slong var, const fmpq_mpoly_ctx_t ctx )
-    void fmpq_mpoly_set(fmpq_mpoly_t A, const fmpq_mpoly_t B, const fmpq_mpoly_ctx_t ctx )
-
-    #Constants
-    void fmpq_mpoly_set_fmpq(fmpq_mpoly_t A, const fmpq_t c, const fmpq_mpoly_ctx_t ctx )
-
-    #Add/Sub
-
-    void fmpq_mpoly_add(fmpq_mpoly_t A, const fmpq_mpoly_t B, const fmpq_mpoly_t C, const fmpq_mpoly_ctx_t ctx )
-    void fmpq_mpoly_sub(fmpq_mpoly_t A, const fmpq_mpoly_t B, const fmpq_mpoly_t C, const fmpq_mpoly_ctx_t ctx )
-
-    #Mul
-
-    void fmpq_mpoly_mul(fmpq_mpoly_t A, const fmpq_mpoly_t B, const fmpq_mpoly_t C, const fmpq_mpoly_ctx_t ctx )
-
-    # Diff/Int
-    void fmpq_mpoly_derivative(fmpq_mpoly_t A, const fmpq_mpoly_t B, signed long var, const fmpq_mpoly_ctx_t ctx )
-    void fmpq_mpoly_integral(fmpq_mpoly_t A, const fmpq_mpoly_t B, signed long var, const fmpq_mpoly_ctx_t ctx )
-
+include "fmpq_mpoly.pxi"
 
 cdef class fmpq_mpoly_ctx:
 
@@ -205,11 +145,11 @@ cdef class fmpq_mpoly:
     def gen(self, var : long ):
         fmpq_mpoly_gen(self.mpoly, var, self.ctx.ctx )
 
-cdef extern from "./include/fmpq_mpoly_matrix.h":
+cdef extern from "../include/fmpq_mpoly_matrix.h":
 
     ctypedef struct fmpq_mpoly_matrix_struct:
-        size_t cols;
-        size_t rows;
+        size_t cols
+        size_t rows
         fmpq_mpoly_t *cfs
 
     ctypedef fmpq_mpoly_matrix_struct fmpq_mpoly_matrix_t[1]
@@ -223,28 +163,6 @@ cdef extern from "./include/fmpq_mpoly_matrix.h":
     void fmpq_mpoly_matrix_squared_frobenius(fmpq_mpoly_t a, const fmpq_mpoly_matrix_t B, const fmpq_mpoly_ctx_t ctx )
     fmpq_mpoly_struct *fmpq_mpoly_coeff_at(const fmpq_mpoly_matrix_t A, size_t i, size_t j )
     int fmpq_mpoly_matrix_gens_fill(const fmpq_mpoly_matrix_t A, size_t g0, const fmpq_mpoly_ctx_t ctx )
-
-
-cdef extern from "flint/fmpz.h":
-
-    ctypedef struct fmpz_t:
-        pass
-
-    void fmpz_init(fmpz_t f)
-    void fmpz_clear(fmpz_t f)
-    void fmpz_set_d_2exp(fmpz_t f, double d, slong exp )
-    void fmpz_ui_pow_ui(fmpz_t f, ulong g, ulong x )
-
-
-cdef extern from "flint/fmpq.h":
-
-    ctypedef struct fmpq_t:
-        pass
-
-    void fmpq_init(fmpq_t x)
-    void fmpq_clear(fmpq_t x)
-    void fmpq_set_fmpz_frac(fmpq_t res, const fmpz_t p, const fmpz_t q )
-
 
 
 cimport cython
@@ -435,11 +353,11 @@ cdef class fmpq_mpoly_matrix:
         fmpz_clear(p)
         fmpz_clear(q)
 
-cdef extern from "msolve/src/fglm/data_fglm.h":
+cdef extern from "../msolve/src/fglm/data_fglm.h":
     pass
-cdef extern from "msolve/src/msolve/msolve-data.h":
+cdef extern from "../msolve/src/msolve/msolve-data.h":
     pass
-cdef extern from "msolve/src/msolve/msolve.h":
+cdef extern from "../msolve/src/msolve/msolve.h":
     ctypedef msolve_re_solutions_t
     void msolve_from_fmpq_mpolys(
 	msolve_re_solutions_t sols,
