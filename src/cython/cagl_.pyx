@@ -26,5 +26,6 @@ include "flint.pxi"
 include "fmpq/fmpz.pxi"
 include "fmpq/fmpq.pxi"
 
-#then fmpq_poly
+#then fmpq_poly and fmpq_mpoly_matrix
 include "fmpq/fmpq_mpoly.pyx"
+include "fmpq/fmpq_mpoly_matrix.pyx"
