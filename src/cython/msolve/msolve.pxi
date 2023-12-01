@@ -19,13 +19,17 @@
 # cagl.pyx
 
 include "../fmpq/fmpq_mpoly.pxi"
+cimport cython
 
 cdef extern from "../../msolve/src/fglm/data_fglm.h":
     pass
 cdef extern from "../../msolve/src/msolve/msolve-data.h":
-    pass
+    struct msolve_re_solutions_struct:
+        long nb_real_roots
+        void *real_roots
+        void *real_pts
 cdef extern from "../../msolve/src/msolve/msolve.h":
-    ctypedef msolve_re_solutions_t
+    ctypedef msolve_re_solutions_struct msolve_re_solutions_t[1]
     void msolve_from_fmpq_mpolys(
 	msolve_re_solutions_t sols,
         fmpq_mpoly_t *polys,

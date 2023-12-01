@@ -21,10 +21,12 @@ from Cython.Build import cythonize
 import numpy as np
 
 #extensions = [ Extension("cagl", ["src/cython/cagl.pyx","src/fmpq_mpoly_matrix.c"], libraries=["flint", "gmp" ]) ]
-extensions = [ Extension("cagl", ["src/cython/cagl.pyx", "src/fmpq_mpoly_matrix.c" ], libraries=["flint", "gmp" ]) ]
+extensions = [ Extension("cagl", ["src/cython/cagl.pyx", "src/fmpq_mpoly_matrix.c" ], libraries=["flint", "gmp", 'msolve', 'neogb' ], library_dirs=['libs'] ) ]
 
 setup(
+    name='cagl',
+    version='0.0.2022a0',
     ext_modules=cythonize(extensions, compiler_directives={'language_level' : "3"}, build_dir="build" ),
-    include_dirs=[np.get_include()]+[ "src/msolve/src/"+dir for dir in ["msolve", "usolve", "neogb", "fglm" ] ]
+    include_dirs=[np.get_include()]+[ "src/msolve/src/"+dir for dir in ["msolve", "usolve", "neogb", "fglm" ] ],
 )
 

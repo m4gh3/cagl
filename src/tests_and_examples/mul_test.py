@@ -34,3 +34,4 @@ print("---------------------------------")
 print("lagrangian gradient:")
 for i in range(6):
     print(f"\t{lagr.der(i).get_str_pretty(gen_names)}")
+print(cagl.solve_from_gens([lagr.der(i) for i in range(6)]))
