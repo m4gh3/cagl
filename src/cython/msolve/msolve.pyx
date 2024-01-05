@@ -55,7 +55,7 @@ def solve_from_gens(x):
 #    #print('sigh')
     msolve_from_fmpq_mpolys(sols, x_, x_len, fake_vnames, ctx.ctx )
     sols_buffer = get_sols_buffer(sols)
-    result = numpy.asarray(<double [:sols.nb_real_roots*ctx.nvars()]> sols_buffer).reshape(sols.nb_real_roots,ctx.nvars())
+    result = numpy.copy(numpy.asarray(<double [:sols.nb_real_roots*ctx.nvars()]> sols_buffer).reshape(sols.nb_real_roots,ctx.nvars()))
     #done !!! now clear everything (except the final result)
     msolve_solutions_clear(sols)
     free(sols_buffer)
