@@ -176,7 +176,7 @@ cdef class fmpq_mpoly_matrix:
 
     @cython.boundscheck(False)
     @cython.wraparound(False)
-    def set_from_np(self, arr : float [:,:], ee : int ):
+    def set_from_np(self, arr : float [:,:], ee : int, ea : int = 8192 ):
         cdef long i, j, ek
         cdef float v, b
         cdef fmpq_t res
@@ -188,13 +188,18 @@ cdef class fmpq_mpoly_matrix:
             raise ValueError("cannot set_from_np : fmpq_mpoly_matrix and array shapes do not match")
         if ( ee <= 0 ):
             raise ValueError("cannot set_from_np : ee <= 0 and needs to be > 0")
+        if ( ea < 0 ):
+            raise ValueError("cannot set_from_np : ea < 0 and needs to be >= 0")
         
         for i in range(self.mpoly_mat.rows):
             for j in range(self.mpoly_mat.cols):
                 v = arr[i,j]
                 if v != 0 :
                     ek = ee-libc.math.floor(libc.math.log2(libc.math.fabs(v)))
+                    #don't drop precision on big enough integers (because it would be likely useless)
                     ek = 0 if ek < 0 else ek
+                    #consider also absolute tollerance (which is 2**(-ea))
+                    ek = ea if ek > ea else ek
                     fmpz_set_d_2exp(p, v, ek )
                     #fmpz_ui_pow_ui(q, 2, ek ) #it doesn't link yet probably need to wait until flint3
                     fmpz_set_d_2exp(q, 1, ek )
