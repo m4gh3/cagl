@@ -16,6 +16,8 @@
  * Authors:
  * Lorenzo Magherini (m4gh3) '''
 
+#NOTE: this file and this whole directory is mean to be copied to the build/ directory along with some other c files
+
 from setuptools import setup, Extension
 from Cython.Build import cythonize
 import numpy as np
@@ -23,18 +25,20 @@ import numpy as np
 #extensions = [ Extension("cagl", ["src/cython/cagl.pyx","src/fmpq_mpoly_matrix.c"], libraries=["flint", "gmp" ]) ]
 extensions = [
     Extension(
-        "cagl",
-        ["src/cython/cagl.pyx", "src/fmpq_mpoly_matrix.c" ],
+        "cagl._cagl",
+        ["cagl/_cagl.pyx", "fmpq_mpoly_matrix.c" ],
         libraries=["flint", "gmp", 'msolve', 'neogb' ],
-        library_dirs=['libs'],
-        extra_link_args=["-Wl,-rpath=$ORIGIN/libs"]
+        library_dirs=['cagl'],
+        extra_link_args=["-Wl,-rpath=$ORIGIN"]
     )]
 
 setup(
     name='cagl',
     version='0.0.2022a0',
-    ext_modules=cythonize(extensions, compiler_directives={'language_level' : "3"}, build_dir="build" ),
+    ext_modules=cythonize(extensions, compiler_directives={'language_level' : "3"} ),
     include_dirs=[np.get_include()]+[ "src/msolve/src/"+dir for dir in ["msolve", "usolve", "neogb", "fglm" ] ],
-    package_data={'.': ['libs/*.so']},
+    packages=['cagl'],
+    include_package_data=True,
+    package_data={'cagl': ['*.so']},
 )
 
