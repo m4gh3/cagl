@@ -18,7 +18,7 @@
 
 #NOTE: this file and this whole directory is mean to be copied to the build/ directory along with some other c files
 
-from setuptools import setup, Extension
+from setuptools import setup, Extension, find_packages
 from Cython.Build import cythonize
 import numpy as np
 
@@ -37,7 +37,7 @@ setup(
     version='0.0.2022a0',
     ext_modules=cythonize(extensions, compiler_directives={'language_level' : "3"} ),
     include_dirs=[np.get_include()]+[ "src/msolve/src/"+dir for dir in ["msolve", "usolve", "neogb", "fglm" ] ],
-    packages=['cagl'],
+    packages=find_packages(), #['cagl',],
     include_package_data=True,
     package_data={'cagl': ['*.so']},
 )

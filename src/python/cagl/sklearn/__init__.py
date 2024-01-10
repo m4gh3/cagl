@@ -1,5 +1,4 @@
 from sklearn.base import BaseEstimator, TransformerMixin
-import numpy as np
 
 class HalfSphereCompact(BaseEstimator, TransformerMixin ):
     def __init__(self, alpha=1 ):
@@ -17,4 +16,3 @@ class HalfSphereCompact(BaseEstimator, TransformerMixin ):
         #the last components reveal about the norm:
         #scale = self.alpha 
         return (self.alpha/X[:,-1:])*X
-
