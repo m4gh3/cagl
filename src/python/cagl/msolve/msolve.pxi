@@ -21,8 +21,8 @@
 include "../fmpq/fmpq_mpoly.pxi"
 cimport cython
 
-cdef extern from "../../msolve/src/fglm/data_fglm.h":
-    pass
+#cdef extern from "../../msolve/src/fglm/data_fglm.h":
+#    pass
 cdef extern from "../../msolve/src/msolve/msolve-data.h":
     struct msolve_re_solutions_struct:
         long nb_real_roots
