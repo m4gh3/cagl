@@ -56,8 +56,8 @@ class PXOR(BaseEstimator, ClassifierMixin ):
 
     def fit(self, X, y, signlabels=True ):
 
-        print(X)
-        print(y)
+        #print(X)
+        #print(y)
 
         ndims = X.shape[1]
         nsamples = X.shape[0]
@@ -80,6 +80,7 @@ class PXOR(BaseEstimator, ClassifierMixin ):
         y_train = cagl.fmpq_mpoly_matrix(1, nsamples, ctx )
         if signlabels:
             y_train_np = y.astype(np.double)
+            y = 1*(y>0)
         else:
             y_train_np = (2*y-1).astype(np.double)
         y_train_np = np.reshape(y_train_np, (1, nsamples) )
