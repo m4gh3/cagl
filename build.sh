@@ -14,5 +14,7 @@ cd build/python/msolve
 make -j$MAKEJOBS
 cd ..
 
-cp msolve/src/*/.libs/*.so cagl
+cp msolve/src/*/.libs/*.so* cagl
+rm cagl/*.so.*.*
+patchelf ~/.local/lib/python3.11/site-packages/cagl/*.so.* --set-rpath '$ORIGIN'
 python setup.py bdist_wheel

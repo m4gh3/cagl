@@ -34,11 +34,11 @@ extensions = [
 
 setup(
     name='cagl',
-    version='0.0.2022a0',
+    version='0.0.20242150',
     ext_modules=cythonize(extensions, compiler_directives={'language_level' : "3"} ),
     include_dirs=[np.get_include()]+[ "src/msolve/src/"+dir for dir in ["msolve", "usolve", "neogb", "fglm" ] ],
     packages=find_packages(), #['cagl',],
     include_package_data=True,
-    package_data={'cagl': ['*.so']},
+    package_data={'cagl': ['*.so.*']},
 )
 

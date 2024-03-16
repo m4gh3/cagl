@@ -20,10 +20,11 @@
 from sklearn.base import BaseEstimator, TransformerMixin, ClassifierMixin
 from sklearn.utils.validation import check_X_y, check_array, check_is_fitted
 from sklearn.metrics import accuracy_score
-from itertools import product
+from tqdm import tqdm
 import numpy as np
 import cagl
 import time
+import sys
 
 
 
@@ -84,15 +85,20 @@ class PXOR(BaseEstimator, ClassifierMixin ):
         else:
             y_train_np = (2*y-1).astype(np.double)
         y_train_np = np.reshape(y_train_np, (1, nsamples) )
+        y_train_np -= y_train_np.mean()
         y_train.set_from_np(y_train_np, 8, 8 )
 
         err = (y_train @ out)[0,0]
  
         acc = 0.0
         #here is were you want to start the fitting loop
-        for aval in avals:#dval,aval in product(dvals,avals):
+        for aval in (pbar := tqdm(avals)):#dval,aval in product(dvals,avals):
 
             #print(dval, aval )
+            
+            pbar.set_description(f"computing loss lagrangian ℒ (aval = {aval}) step 1/2 ...")
+
+            #TODO: this part has poor performance for some reason
 
             cons = cagl.fmpq_mpoly(ctx, "0" )
 
@@ -113,12 +119,23 @@ class PXOR(BaseEstimator, ClassifierMixin ):
 
             cons += aval_
 
+            pbar.set_description(f"computing loss lagrangian ℒ (aval = {aval}) step 2/2 ...")
+            #start = time.time() 
             lagr = err + cons
+            #end = time.time()
+            #print(end-start)
+
+            #TODO:from here it is often faster... weird
 
             #for i in range(2*ndims+3):
             #    print(lagr.der(i).get_str_pretty(gen_names) )
 
+            pbar.set_description(f"computing  real solutions for ∇ ℒ = 0 (aval = {aval}) ...")
+            sys.stdout.flush()
+
             a = cagl.solve_from_gens([lagr.der(i) for i in range(2*ndims+3)])
+
+            pbar.set_description(f"evaluating real solutions for ∇ ℒ = 0 (aval = {aval}) ...")
 
             #time.sleep(0.5)
 
@@ -176,4 +193,4 @@ class PXOR(BaseEstimator, ClassifierMixin ):
         return acc
 
     def decision_function(self, X ):
-        return (X @ self.w0)*(X @ self.w1)-self.dval
+        return 1/(1+np.exp(-(X @ self.w0)*(X @ self.w1)+self.dval))-0.5
